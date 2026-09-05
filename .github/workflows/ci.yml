@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -java-output-version:17 sets the bytecode target; the build itself runs
+      # on a current JDK.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+
+      # Plain `sbt`, not `sbt --client`: there is no long-running server to
+      # reuse in CI, and the thin client would have to start one anyway.
+      - name: Check formatting
+        run: sbt scalafmtCheckAll scalafmtSbtCheck
+
+      - name: Compile
+        run: sbt Test/compile
+
+      - name: Test
+        run: sbt test
+
+      # The examples module is never published, so nothing else would notice if
+      # it stopped compiling - which is exactly what makes it a useful check
+      # that the public API is still usable.
+      - name: Compile examples
+        run: sbt examples/compile
