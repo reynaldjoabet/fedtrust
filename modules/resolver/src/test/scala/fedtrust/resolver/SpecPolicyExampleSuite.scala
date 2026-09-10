@@ -2,7 +2,7 @@ package fedtrust.resolver
 
 import fedtrust.metadata.MetadataPolicy
 import fedtrust.resolver.policy.MetadataPolicyEngine
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
 import io.circe.JsonObject
 import io.circe.syntax.*
 import munit.FunSuite

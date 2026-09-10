@@ -8,10 +8,11 @@ import fedtrust.entity.TrustMarkEntry
 import fedtrust.error.FederationError
 import fedtrust.metadata.Metadata
 import fedtrust.resolver.policy.MetadataPolicyEngine
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** What a caller actually wanted when it asked about an entity: the metadata
-  * that survived the federation's policies, and the chain that justifies it.
+  * that survived the federation's policies, the Trust Marks that verified, and
+  * the chain that justifies both.
   *
   * This is the payload of a resolve response (spec section 8.3.2).
   */
@@ -24,8 +25,8 @@ final case class ResolvedEntity(
     chain: TrustChain
 )
 
-/** Trust Chain resolution end to end: build the chain, then derive the
-  * subject's Resolved Metadata from it.
+/** Trust Chain resolution end to end: build the chain, derive the subject's
+  * Resolved Metadata from it, and verify the Trust Marks it carries.
   *
   * Kept separate from [[TrustChainResolver]] because they answer different
   * questions. Building a chain establishes that an entity belongs to a
@@ -38,11 +39,59 @@ trait Resolver[F[_]] {
 
 object Resolver {
 
-  def apply[F[_]: MonadThrow](chains: TrustChainResolver[F]): Resolver[F] =
+  /** The full resolver: metadata and verified Trust Marks.
+    *
+    * Section 8.3 requires a resolver to verify the marks it returns, so a
+    * validator is not optional decoration — without one there is nothing
+    * honest to put in `trustMarks`, which is why the alternative constructor
+    * below returns an empty list rather than an unverified one.
+    */
+  def apply[F[_]: MonadThrow](
+      chains: TrustChainResolver[F],
+      trustMarks: TrustMarkValidator[F]
+  ): Resolver[F] =
     new Resolver[F] {
       def resolve(subject: EntityId, trustAnchor: EntityId): F[ResolvedEntity] =
-        chains.resolve(subject, trustAnchor).flatMap(from(_).liftTo[F])
+        for {
+          chain    <- chains.resolve(subject, trustAnchor)
+          metadata <- resolvedMetadata(chain).liftTo[F]
+          verified <- trustMarks.validateAll(
+            chain.subjectConfiguration,
+            chain.trustAnchorConfiguration
+          )
+        } yield resolved(chain, metadata, verified)
     }
+
+  /** Resolution without Trust Mark validation.
+    *
+    * `ResolvedEntity.trustMarks` is always empty here, and that is the point:
+    * section 8.3 says the response set "MUST include only verified Trust
+    * Marks", so a resolver that cannot verify them must return none rather
+    * than pass along claims it has not checked. Use this when the caller only
+    * wants metadata.
+    */
+  def withoutTrustMarks[F[_]: MonadThrow](chains: TrustChainResolver[F]): Resolver[F] =
+    new Resolver[F] {
+      def resolve(subject: EntityId, trustAnchor: EntityId): F[ResolvedEntity] =
+        for {
+          chain    <- chains.resolve(subject, trustAnchor)
+          metadata <- resolvedMetadata(chain).liftTo[F]
+        } yield resolved(chain, metadata, Nil)
+    }
+
+  private def resolved(
+      chain: TrustChain,
+      metadata: Metadata,
+      trustMarks: List[TrustMarkEntry]
+  ): ResolvedEntity =
+    ResolvedEntity(
+      subject = chain.subject,
+      trustAnchor = chain.trustAnchor,
+      metadata = metadata,
+      trustMarks = trustMarks,
+      expiresAt = chain.expiresAt,
+      chain = chain
+    )
 
   /** Section 6.1.4.2, in the order the spec fixes.
     *
@@ -66,16 +115,4 @@ object Resolver {
       resolved <- MetadataPolicyEngine.applyTo(policy, permitted)
     } yield resolved
   }
-
-  def from(chain: TrustChain): Either[FederationError, ResolvedEntity] =
-    resolvedMetadata(chain).map { metadata =>
-      ResolvedEntity(
-        subject = chain.subject,
-        trustAnchor = chain.trustAnchor,
-        metadata = metadata,
-        trustMarks = chain.subjectConfiguration.trustMarks.getOrElse(Nil),
-        expiresAt = chain.expiresAt,
-        chain = chain
-      )
-    }
 }

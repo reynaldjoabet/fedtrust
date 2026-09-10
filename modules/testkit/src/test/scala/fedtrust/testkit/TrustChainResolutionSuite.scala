@@ -8,7 +8,7 @@ import fedtrust.jose.{JwsVerifier, Nimbus}
 import fedtrust.jwt.SignedJwt
 import fedtrust.metadata.{Metadata, MetadataPolicy}
 import fedtrust.resolver.{EntityStatementFetcher, Resolver, StatementVerifier, TrustChainResolver}
-import fedtrust.types.{EntityId, EntityType}
+import fedtrust.types.{*, given}
 import io.circe.parser.parse
 import munit.FunSuite
 
@@ -147,7 +147,8 @@ class TrustChainResolutionSuite extends FunSuite {
   }
 
   test("resolved metadata reflects both superiors' policies") {
-    val resolved = Resolver[Result](resolverOver()).resolve(leaf.id, trustAnchor.id)
+    val resolved =
+      Resolver.withoutTrustMarks[Result](resolverOver()).resolve(leaf.id, trustAnchor.id)
 
     resolved match {
       case Left(error)   => fail(s"expected resolved metadata, got $error")

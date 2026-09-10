@@ -3,7 +3,7 @@ package fedtrust.resolver.policy
 import fedtrust.entity.EntityStatement
 import fedtrust.error.FederationError
 import fedtrust.metadata.{Metadata, MetadataPolicy, ParameterPolicy}
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
 import io.circe.{Json, JsonObject}
 
 /** Metadata policy resolution and application (spec section 6.1.4).

@@ -9,7 +9,7 @@ import fedtrust.error.FederationError
 import fedtrust.jose.JwsVerifier
 import fedtrust.jwk.JwkSet
 import fedtrust.jwt.{JwtTyp, SignedJwt}
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** Entity Statement validation (spec section 3.2).
   *
@@ -69,9 +69,9 @@ final class StatementVerifier[F[_]](
 
   private def checkTyp(signed: SignedJwt): F[Unit] =
     signed.headerTyp.liftTo[F].flatMap { typ =>
-      F.raiseUnless(typ.contains(JwtTyp.EntityStatement))(
+      F.raiseUnless(typ.contains(JwtTyp.EntityStatement.value))(
         FederationError.MalformedJwt(
-          s"expected typ ${JwtTyp.EntityStatement}, got ${typ.getOrElse("none")}"
+          s"expected typ ${JwtTyp.EntityStatement.value}, got ${typ.getOrElse("none")}"
         )
       )
     }

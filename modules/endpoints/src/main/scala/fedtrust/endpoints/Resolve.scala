@@ -6,7 +6,7 @@ import fedtrust.entity.TrustMarkEntry
 import fedtrust.error.FederationError
 import fedtrust.jwt.SignedJwt
 import fedtrust.metadata.Metadata
-import fedtrust.types.{EntityId, EntityType}
+import fedtrust.types.{*, given}
 import fedtrust.util.NumericDate.given
 import io.circe.{Decoder, Encoder}
 
@@ -29,11 +29,24 @@ object ResolveRequest {
     for {
       sub     <- required(params, "sub")
       anchors <- requiredAll(params, "trust_anchor")
-    } yield ResolveRequest(
-      sub = sub,
-      trustAnchors = anchors,
-      entityTypes = params.all("entity_type").map(EntityType.apply)
-    )
+      types   <- entityTypes(params, "entity_type")
+    } yield ResolveRequest(sub = sub, trustAnchors = anchors, entityTypes = types)
+
+  /** A blank `entity_type` is rejected rather than carried: it can never match
+    * a metadata key, so accepting it would filter the response down to nothing
+    * while looking like a successful request.
+    */
+  private def entityTypes(
+      params: Params,
+      name: String
+  ): Either[FederationError, List[EntityType]] =
+    params.all(name).foldLeft[Either[FederationError, List[EntityType]]](Right(Nil)) { (acc, raw) =>
+      for {
+        parsed <- acc
+        next   <- EntityType(raw).left
+          .map(reason => FederationError.InvalidRequest(s"invalid [$name]: $reason"))
+      } yield parsed :+ next
+    }
 
   def toParams(request: ResolveRequest): Params =
     Params.of(

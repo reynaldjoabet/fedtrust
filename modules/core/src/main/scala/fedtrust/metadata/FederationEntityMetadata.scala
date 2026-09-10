@@ -1,7 +1,7 @@
 package fedtrust.metadata
 
 import fedtrust.error.FederationError
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
 import io.circe.{Decoder, Encoder}
 
 /** The `federation_entity` metadata type (spec section 5.1.1).

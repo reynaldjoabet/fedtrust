@@ -5,7 +5,8 @@ import cats.syntax.all.*
 import fedtrust.entity.EntityStatement
 import fedtrust.error.FederationError
 import fedtrust.metadata.FederationEntityMetadata
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
+import io.github.iltotore.iron.*
 
 /** Builds Trust Chains from a subject up to a Trust Anchor (spec section 4).
   *
@@ -36,7 +37,7 @@ object TrustChainResolver {
     * run away. `authority_hints` form an arbitrary graph, and nothing in the
     * protocol bounds its depth.
     */
-  final case class Limits(maxPathLength: Int = 8)
+  final case class Limits(maxPathLength: SearchDepth = 8)
 
   def apply[F[_]: MonadThrow](
       fetcher: EntityStatementFetcher[F],

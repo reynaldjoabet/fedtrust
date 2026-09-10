@@ -2,7 +2,7 @@ package fedtrust.resolver
 
 import fedtrust.error.FederationError
 import fedtrust.resolver.policy.MetadataPolicyEngine
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
 import io.circe.Json
 import munit.FunSuite
 

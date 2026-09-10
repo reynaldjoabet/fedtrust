@@ -5,7 +5,7 @@ import cats.syntax.all.*
 import fedtrust.error.FederationError
 import fedtrust.jwt.SignedJwt
 import fedtrust.resolver.EntityStatementFetcher
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** An [[EntityStatementFetcher]] backed by maps.
   *

@@ -5,7 +5,7 @@ import java.time.Instant
 import fedtrust.entity.EntityStatement
 import fedtrust.jwk.JwkSet
 import fedtrust.metadata.{Metadata, MetadataPolicy}
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 import io.circe.{Json, JsonObject}
 import io.circe.parser.parse
 

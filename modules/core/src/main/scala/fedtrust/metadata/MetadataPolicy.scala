@@ -1,6 +1,6 @@
 package fedtrust.metadata
 
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
 import io.circe.{Decoder, Encoder, Json, JsonObject}
 
 /** A metadata policy operator name.

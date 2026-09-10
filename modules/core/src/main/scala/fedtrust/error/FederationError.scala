@@ -2,7 +2,7 @@ package fedtrust.error
 
 import scala.util.control.NoStackTrace
 
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** Failures raised anywhere in the library.
   *
@@ -73,14 +73,23 @@ object FederationError {
   final case class InvalidSignature(detail: String)
       extends FederationError("server_error", 500, detail)
 
-  final case class KeyNotFound(kid: Option[String])
-      extends FederationError(
-        "server_error",
-        500,
-        kid.fold("statement has no usable signing key")(k => s"no key with kid $k")
-      )
+  /** No key could be selected to verify a statement, or the selection was
+    * ambiguous. `detail` says which, because "no such key" and "two keys with
+    * that kid" point at very different misconfigurations.
+    */
+  final case class KeyNotFound(detail: String) extends FederationError("server_error", 500, detail)
 
   final case class Expired(detail: String) extends FederationError("server_error", 500, detail)
+
+  /** A Trust Mark that did not validate under section 7.3.
+    *
+    * `server_error` because section 8.9 defines no code for it: at a resolve
+    * endpoint an unverifiable mark is omitted from the response rather than
+    * failing the request, so this surfaces as a diagnostic rather than as the
+    * status a caller sees.
+    */
+  final case class InvalidTrustMark(detail: String)
+      extends FederationError("server_error", 500, detail)
 
   final case class FetchFailed(detail: String, cause: Option[Throwable] = None)
       extends FederationError("server_error", 500, detail)

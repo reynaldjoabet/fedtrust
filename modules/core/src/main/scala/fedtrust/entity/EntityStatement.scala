@@ -4,7 +4,7 @@ import java.time.Instant
 
 import fedtrust.jwk.JwkSet
 import fedtrust.metadata.{Metadata, MetadataPolicy}
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 import fedtrust.util.NumericDate.given
 import io.circe.{Decoder, Encoder}
 
@@ -36,6 +36,7 @@ final case class EntityStatement(
     metadataPolicyCrit: Option[List[String]] = None,
     trustMarks: Option[List[TrustMarkEntry]] = None,
     trustMarkIssuers: Option[TrustMarkIssuers] = None,
+    trustMarkOwners: Option[TrustMarkOwners] = None,
     sourceEndpoint: Option[String] = None
 ) {
 
@@ -54,6 +55,21 @@ final case class EntityStatement(
   def metadataOrEmpty: Metadata = metadata.getOrElse(Metadata.empty)
 
   def metadataPolicyOrEmpty: MetadataPolicy = metadataPolicy.getOrElse(MetadataPolicy.empty)
+
+  def trustMarkEntries: List[TrustMarkEntry] = trustMarks.getOrElse(Nil)
+
+  /** Section 3.1.2: `trust_mark_issuers` and `trust_mark_owners` MUST be
+    * ignored on a statement that is not a Trust Anchor's Entity Configuration.
+    * Reading them through these accessors is what enforces that, rather than
+    * leaving each call site to remember.
+    */
+  def trustMarkIssuersAsAnchor: TrustMarkIssuers =
+    if (isEntityConfiguration) trustMarkIssuers.getOrElse(TrustMarkIssuers.empty)
+    else TrustMarkIssuers.empty
+
+  def trustMarkOwnersAsAnchor: TrustMarkOwners =
+    if (isEntityConfiguration) trustMarkOwners.getOrElse(TrustMarkOwners.empty)
+    else TrustMarkOwners.empty
 }
 
 object EntityStatement {
@@ -63,7 +79,7 @@ object EntityStatement {
   }
 
   given Encoder[EntityStatement] =
-    Encoder.forProduct14(
+    Encoder.forProduct15(
       "iss",
       "sub",
       "iat",
@@ -77,6 +93,7 @@ object EntityStatement {
       "metadata_policy_crit",
       "trust_marks",
       "trust_mark_issuers",
+      "trust_mark_owners",
       "source_endpoint"
     )(s =>
       (
@@ -93,12 +110,13 @@ object EntityStatement {
         s.metadataPolicyCrit,
         s.trustMarks,
         s.trustMarkIssuers,
+        s.trustMarkOwners,
         s.sourceEndpoint
       )
     )
 
   given Decoder[EntityStatement] =
-    Decoder.forProduct14(
+    Decoder.forProduct15(
       "iss",
       "sub",
       "iat",
@@ -112,6 +130,7 @@ object EntityStatement {
       "metadata_policy_crit",
       "trust_marks",
       "trust_mark_issuers",
+      "trust_mark_owners",
       "source_endpoint"
     )(EntityStatement.apply)
 }

@@ -4,7 +4,7 @@ import java.time.Instant
 
 import fedtrust.entity.EntityStatement
 import fedtrust.jwk.JwkSet
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 import io.circe.parser.decode
 import io.circe.syntax.*
 import munit.FunSuite

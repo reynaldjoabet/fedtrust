@@ -17,7 +17,8 @@ ThisBuild / scalacOptions := Seq(
   "-Wnonunit-statement",
   "-Xlint:all",
   "-Xcheck-macros",
-  "-Xmax-inlines:64"
+  "-Xmax-inlines:64",
+  "-Ysafe-init"
 )
 
 // Publishing identity. Every module inherits it; `examples` and the root
@@ -52,7 +53,7 @@ lazy val core = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-core",
-    libraryDependencies ++= Seq(catsCore) ++ circe
+    libraryDependencies ++= Seq(catsCore, iron, ironCirce, jsoniterCore, jsoniterCirce) ++ circeAll
   )
 
 // Signing and verification. Pins the crypto backend, which is the reason this
@@ -63,7 +64,7 @@ lazy val jose = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-jose",
-    libraryDependencies += nimbusJose
+    libraryDependencies += nimbusJoseJwt
   )
 
 // Trust Chain building and validation, metadata policy, constraints, and the
@@ -75,7 +76,7 @@ lazy val resolver = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-resolver",
-    libraryDependencies += catsEffect
+    libraryDependencies ++= Seq(catsEffect, iron)
   )
 
 // Request and response contracts for the federation endpoints (spec section
@@ -85,7 +86,7 @@ lazy val endpoints = project
   .in(file("modules/endpoints"))
   .dependsOn(core, resolver)
   .settings(commonSettings)
-  .settings(name := "fedtrust-endpoints")
+  .settings(name := "fedtrust-endpoints", libraryDependencies += iron)
 
 // One module per HTTP backend; users pick the one matching their stack.
 lazy val http4sBackend = project
@@ -94,7 +95,7 @@ lazy val http4sBackend = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-http4s",
-    libraryDependencies ++= Seq(http4sClient, http4sCirce, http4sEmber % Test)
+    libraryDependencies ++= Seq(http4sClient, http4sCirce, emberClient % Test)
   )
 
 // In-memory federations for tests: a TA -> intermediate -> leaf tree with no

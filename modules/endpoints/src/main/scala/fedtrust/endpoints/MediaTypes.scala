@@ -2,25 +2,34 @@ package fedtrust.endpoints
 
 /** Content types the federation endpoints use (spec section 8).
   *
-  * These are not decoration. Section 8.3.2 requires a resolve response to be
-  * rejected unless it is explicitly typed, and the endpoints are deliberately
+  * Not decoration. Section 8.3.2 requires a resolve response to be rejected
+  * unless it is explicitly typed, and the endpoints are deliberately
   * distinguishable from ordinary JSON so that a signed statement is never
-  * mistaken for one.
+  * mistaken for one. A closed set, for the same reason [[fedtrust.jwt.JwtTyp]]
+  * is: a content type outside it is a rejection, not an extension point.
   */
-object MediaTypes {
+enum MediaType(val value: String) {
 
   /** Fetch responses, and Entity Configurations served from the well-known
     * location.
     */
-  val EntityStatement = "application/entity-statement+jwt"
+  case EntityStatement extends MediaType("application/entity-statement+jwt")
 
   /** Resolve responses. */
-  val ResolveResponse = "application/resolve-response+jwt"
+  case ResolveResponse extends MediaType("application/resolve-response+jwt")
 
-  val TrustMark = "application/trust-mark+jwt"
+  case TrustMark extends MediaType("application/trust-mark+jwt")
 
   /** Subordinate listings, and every error response. */
-  val Json = "application/json"
+  case Json extends MediaType("application/json")
+}
+
+object MediaType {
+
+  private lazy val byValue: Map[String, MediaType] =
+    values.map(media => media.value -> media).toMap
+
+  def fromValue(raw: String): Option[MediaType] = byValue.get(raw)
 }
 
 /** The query parameters of a federation endpoint request.

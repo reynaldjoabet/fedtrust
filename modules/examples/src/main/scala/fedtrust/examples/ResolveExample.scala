@@ -9,7 +9,7 @@ import fedtrust.jwt.SignedJwt
 import fedtrust.metadata.{Metadata, MetadataPolicy}
 import fedtrust.resolver.{Resolver, StatementVerifier, TrustChainResolver}
 import fedtrust.testkit.{InMemoryEntityStatementFetcher, TestEntity, TestFederation}
-import fedtrust.types.{EntityId, EntityType}
+import fedtrust.types.{*, given}
 import io.circe.parser.parse
 
 /** A federation stood up in memory and resolved end to end.
@@ -113,7 +113,9 @@ object ResolveExample {
       )
     )
 
-    Resolver[Result](chains).resolve(request.sub, request.trustAnchors.head) match {
+    Resolver
+      .withoutTrustMarks[Result](chains)
+      .resolve(request.sub, request.trustAnchors.head) match {
       case Left(error) =>
         println(s"resolution failed: $error")
 

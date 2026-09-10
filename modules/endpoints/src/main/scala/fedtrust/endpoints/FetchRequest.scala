@@ -1,7 +1,7 @@
 package fedtrust.endpoints
 
 import fedtrust.error.FederationError
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** A request to the fetch endpoint (spec section 8.1.1).
   *

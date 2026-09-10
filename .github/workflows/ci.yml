@@ -1,9 +1,13 @@
-name: CI
+name: Scala CI Build
 
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,35 +15,43 @@ concurrency:
 
 jobs:
   build:
-    name: Build and test
-    runs-on: ubuntu-latest
+    name: Build Java ${{ matrix.java }} (${{ matrix.distribution }}) on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [17, 21]
+        distribution: [temurin, corretto]
+        os: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
-      # -java-output-version:17 sets the bytecode target; the build itself runs
-      # on a current JDK.
-      - uses: actions/setup-java@v4
+      - name: Set up Java ${{ matrix.java }} (${{ matrix.distribution }})
+        uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: '21'
-          cache: sbt
+          distribution: ${{ matrix.distribution }}
+          java-version: ${{ matrix.java }}
+          cache: 'sbt'
+          check-latest: false
+          cache-dependency-path: |
+            **/*.sbt
+            **/project/build.properties
+            **/project/*.scala
+            **/project/**/*.scala
 
-      - uses: sbt/setup-sbt@v1
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
 
-      # Plain `sbt`, not `sbt --client`: there is no long-running server to
-      # reuse in CI, and the thin client would have to start one anyway.
-      - name: Check formatting
-        run: sbt scalafmtCheckAll scalafmtSbtCheck
+      - name: Lint, compile, and test
+        run: sbt -v --server "scalafmtSbtCheck; scalafmtCheckAll; Test/compile; test"
 
-      - name: Compile
-        run: sbt Test/compile
-
-      - name: Test
-        run: sbt test
-
-      # The examples module is never published, so nothing else would notice if
-      # it stopped compiling - which is exactly what makes it a useful check
-      # that the public API is still usable.
-      - name: Compile examples
-        run: sbt examples/compile
+      # Alternatively, run as separate steps:
+      # - name: Check formatting
+      #   run: sbt -v --server "scalafmtSbtCheck; scalafmtCheckAll"
+      #
+      # - name: Compile and test
+      #   run: sbt -v --server "Test/compile; test"

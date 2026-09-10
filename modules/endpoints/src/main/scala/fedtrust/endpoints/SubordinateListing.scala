@@ -1,7 +1,7 @@
 package fedtrust.endpoints
 
 import fedtrust.error.FederationError
-import fedtrust.types.{EntityId, EntityType}
+import fedtrust.types.{*, given}
 import io.circe.{Decoder, Encoder}
 
 /** A request to the subordinate listing endpoint (spec section 8.2.1).
@@ -35,12 +35,27 @@ object SubordinateListingRequest {
     for {
       trustMarked  <- boolean(params, trustMarkedParam)
       intermediate <- boolean(params, intermediateParam)
+      types        <- entityTypes(params)
     } yield SubordinateListingRequest(
-      entityTypes = params.all(entityTypeParam).map(EntityType.apply),
+      entityTypes = types,
       trustMarked = trustMarked,
       trustMarkType = params.first(trustMarkTypeParam),
       intermediate = intermediate
     )
+
+  /** A blank `entity_type` is rejected rather than carried: it can never match
+    * an entity type, so accepting it would filter the listing to nothing while
+    * looking like a successful request.
+    */
+  private def entityTypes(params: Params): Either[FederationError, List[EntityType]] =
+    params.all(entityTypeParam).foldLeft[Either[FederationError, List[EntityType]]](Right(Nil)) {
+      (acc, raw) =>
+        for {
+          parsed <- acc
+          next   <- EntityType(raw).left
+            .map(reason => FederationError.InvalidRequest(s"invalid [$entityTypeParam]: $reason"))
+        } yield parsed :+ next
+    }
 
   def toParams(request: SubordinateListingRequest): Params = {
     val types = request.entityTypes.map(t => entityTypeParam -> t.value)

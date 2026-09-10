@@ -1,7 +1,7 @@
 package fedtrust.resolver
 
 import fedtrust.jwt.SignedJwt
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 /** How the resolver reaches the network.
   *

@@ -1,7 +1,8 @@
 package fedtrust.resolver
 
 import fedtrust.entity.{Constraints, NamingConstraints}
-import fedtrust.types.EntityType
+import fedtrust.types.{*, given}
+import io.github.iltotore.iron.*
 import munit.FunSuite
 
 /** Constraints from spec section 6.2, including the worked `max_path_length`
@@ -33,7 +34,7 @@ class ConstraintSuite extends FunSuite {
     trustAnchorConfiguration = statement(trustAnchor, trustAnchor)
   )
 
-  private def pathLength(n: Int) = Some(Constraints.empty.copy(maxPathLength = Some(n)))
+  private def pathLength(n: MaxPathLength) = Some(Constraints.empty.copy(maxPathLength = Some(n)))
 
   test("the chain is well formed to begin with") {
     assertEquals(ConstraintChecker.check(chain()), Right(()))

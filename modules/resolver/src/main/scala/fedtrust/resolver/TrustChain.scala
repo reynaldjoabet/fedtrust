@@ -4,7 +4,8 @@ import java.time.Instant
 
 import fedtrust.entity.EntityStatement
 import fedtrust.error.FederationError
-import fedtrust.types.EntityId
+import fedtrust.jwk.JwkSet
+import fedtrust.types.{*, given}
 
 /** A validated trust chain, held in the order the spec defines: the subject's
   * own entity configuration first, then each subordinate statement walking up,
@@ -51,6 +52,18 @@ final case class TrustChain(
     * the chain has one. Its `metadata` claim is applied before policy.
     */
   def immediateSuperiorStatement: Option[EntityStatement] = subordinateStatements.headOption
+
+  /** The subject's keys as its Immediate Superior attests them.
+    *
+    * Deliberately not `subjectConfiguration.jwks`, which is only what the
+    * subject says about itself. Section 4 makes the superior's attestation the
+    * authoritative statement of an entity's keys, and chain building has
+    * already verified the configuration against it. A chain with no
+    * subordinate statements is the subject acting as its own Trust Anchor,
+    * where its configuration is the root of trust by definition.
+    */
+  def attestedSubjectKeys: JwkSet =
+    subordinateStatements.headOption.map(_.jwks).getOrElse(subjectConfiguration.jwks)
 
   /** A chain is only good until its shortest-lived statement expires. */
   def expiresAt: Instant = statements.map(_.exp).min

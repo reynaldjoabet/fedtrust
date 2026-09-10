@@ -3,7 +3,7 @@ package fedtrust.resolver
 import fedtrust.entity.{Constraints, EntityStatement, NamingConstraints}
 import fedtrust.error.FederationError
 import fedtrust.metadata.Metadata
-import fedtrust.types.EntityId
+import fedtrust.types.{*, given}
 
 import java.net.URI
 
@@ -51,14 +51,10 @@ object ConstraintChecker {
       constraints: Constraints,
       index: Int
   ): Either[FederationError, Unit] =
+    // There is no negative case to handle: MaxPathLength is refined, so a
+    // statement carrying one never decodes at all (section 6.2.1).
     constraints.maxPathLength match {
-      case None                         => Right(())
-      case Some(maximum) if maximum < 0 =>
-        Left(
-          FederationError.InvalidTrustChain(
-            s"${statement.iss.value} set a negative max_path_length"
-          )
-        )
+      case None          => Right(())
       case Some(maximum) =>
         Either.cond(
           index <= maximum,

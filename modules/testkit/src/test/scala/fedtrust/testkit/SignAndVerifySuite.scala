@@ -24,7 +24,7 @@ class SignAndVerifySuite extends FunSuite {
     result match {
       case Left(error)             => fail(s"expected a verified statement, got $error")
       case Right((_, typ, parsed)) =>
-        assertEquals(typ, Some(JwtTyp.EntityStatement))
+        assertEquals(typ, Some(JwtTyp.EntityStatement.value))
         assertEquals(parsed.iss, trustAnchor.id)
         assertEquals(parsed.sub, leaf.id)
         assert(!parsed.isEntityConfiguration)
