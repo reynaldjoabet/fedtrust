@@ -4,7 +4,7 @@ import java.net.URI
 
 import scala.annotation.targetName
 
-import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
+import io.circe.{Decoder, Encoder, Json, JsonObject, KeyDecoder, KeyEncoder}
 import io.github.iltotore.iron.*
 import io.github.iltotore.iron.constraint.all.*
 
@@ -21,6 +21,14 @@ import io.github.iltotore.iron.constraint.all.*
   * needs.
   */
 object types {
+
+  // Metadata documents and policy operator values are circe JSON, and
+  // comparing them structurally is the whole basis of the policy engine —
+  // subset_of intersects, one_of tests membership, value demands equality. Both
+  // have sound structural equals, so strictEquality gets told once here rather
+  // than in every operator.
+  given CanEqual[Json, Json]             = CanEqual.derived
+  given CanEqual[JsonObject, JsonObject] = CanEqual.derived
 
   // ---------------------------------------------------------------- entity id
 
@@ -126,7 +134,7 @@ object types {
     * The dependency runs one way, from this enum to the identifiers. Deriving
     * the identifiers back from `values` would be an initialisation cycle.
     */
-  enum WellKnownEntityType(val identifier: EntityType) {
+  enum WellKnownEntityType(val identifier: EntityType) derives CanEqual {
     case FederationEntity         extends WellKnownEntityType(EntityType.FederationEntity)
     case OpenIdRelyingParty       extends WellKnownEntityType(EntityType.OpenIdRelyingParty)
     case OpenIdProvider           extends WellKnownEntityType(EntityType.OpenIdProvider)

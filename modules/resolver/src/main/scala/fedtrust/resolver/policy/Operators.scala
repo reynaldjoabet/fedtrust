@@ -3,6 +3,7 @@ package fedtrust.resolver.policy
 import fedtrust.error.FederationError
 import fedtrust.metadata.PolicyOperator
 import fedtrust.metadata.PolicyOperator.*
+import fedtrust.types.given
 import io.circe.Json
 
 /** The semantics of the seven standard policy operators (spec section

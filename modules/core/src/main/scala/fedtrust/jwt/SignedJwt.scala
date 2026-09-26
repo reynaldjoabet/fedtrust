@@ -16,7 +16,7 @@ import io.github.iltotore.iron.constraint.all.*
   * expected, and a resolve response accepted as an entity statement would be
   * exactly that failure.
   */
-enum JwtTyp(val value: String) {
+enum JwtTyp(val value: String) derives CanEqual {
   case EntityStatement              extends JwtTyp("entity-statement+jwt")
   case TrustMark                    extends JwtTyp("trust-mark+jwt")
   case TrustMarkDelegation          extends JwtTyp("trust-mark-delegation+jwt")

@@ -9,7 +9,7 @@ import io.circe.{Decoder, Encoder, Json, JsonObject}
   * `essential` is evaluated last. Merging and applying a policy both depend on
   * this ordering, so it lives with the operator rather than at the use site.
   */
-enum PolicyOperator(val name: String, val order: Int) {
+enum PolicyOperator(val name: String, val order: Int) derives CanEqual {
   case Value      extends PolicyOperator("value", 0)
   case Add        extends PolicyOperator("add", 1)
   case Default    extends PolicyOperator("default", 2)

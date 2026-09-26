@@ -8,7 +8,7 @@ package fedtrust.endpoints
   * mistaken for one. A closed set, for the same reason [[fedtrust.jwt.JwtTyp]]
   * is: a content type outside it is a rejection, not an extension point.
   */
-enum MediaType(val value: String) {
+enum MediaType(val value: String) derives CanEqual {
 
   /** Fetch responses, and Entity Configurations served from the well-known
     * location.

@@ -74,7 +74,7 @@ final case class EntityStatement(
 
 object EntityStatement {
 
-  enum Kind {
+  enum Kind derives CanEqual {
     case EntityConfiguration, SubordinateStatement
   }
 

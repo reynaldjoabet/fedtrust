@@ -7,7 +7,7 @@ import scala.util.Try
 import cats.ApplicativeThrow
 import com.nimbusds.jose.crypto.factories.{DefaultJWSSignerFactory, DefaultJWSVerifierFactory}
 import com.nimbusds.jose.jwk.{AsymmetricJWK, JWK, KeyOperation, KeyType, KeyUse}
-import com.nimbusds.jose.{JOSEObjectType, JWSAlgorithm, JWSHeader, JWSObject, Payload}
+import com.nimbusds.jose.{Algorithm, JOSEObjectType, JWSAlgorithm, JWSHeader, JWSObject, Payload}
 import fedtrust.error.FederationError
 import fedtrust.jwk.{Jwk, JwkSet}
 import fedtrust.jwt.SignedJwt
@@ -54,6 +54,14 @@ object JwsSigner {
   * instances rather than editing call sites.
   */
 object Nimbus {
+
+  // Nimbus's algorithm and key-use values are Java value objects with proper
+  // equals, but strictEquality will not take that on trust. Naming the
+  // comparisons this build actually makes is cheap and keeps the flag honest
+  // everywhere else.
+  private given CanEqual[KeyUse, KeyUse]          = CanEqual.derived
+  private given CanEqual[KeyType, KeyType]        = CanEqual.derived
+  private given CanEqual[Algorithm, JWSAlgorithm] = CanEqual.derived
 
   private lazy val verifierFactory = new DefaultJWSVerifierFactory()
   private lazy val signerFactory   = new DefaultJWSSignerFactory()

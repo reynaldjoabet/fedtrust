@@ -14,13 +14,13 @@ object Dependencies {
     val zioKafka   = "3.7.0"
 
     // --- HTTP ---
-    val http4s  = "0.23.36"
+    val http4s  = "0.23.37"
     val sttp4   = "4.0.26"
     val tapir   = "1.13.27"
     val jsonRpc = "0.2.0"
 
     // --- JSON ---
-    val jsoniter = "2.39.1"
+    val jsoniter = "2.41.2"
     val circe    = "0.14.16"
 
     // --- FP ---
@@ -34,7 +34,7 @@ object Dependencies {
     val scalacheck      = "1.19.0"
     val munit           = "1.3.6"
     val munitScalacheck = "1.3.1"
-    val munitCatsEffect = "2.2.0"
+    val munitCatsEffect = "2.2.1"
 
     // --- DB ---
     val quill    = "4.8.6"
@@ -49,7 +49,7 @@ object Dependencies {
     val bouncycastle     = "1.85"
     val password4j       = "1.8.4"
     val auth0            = "4.5.2"
-    val nimbusJoseJwt    = "10.9.1"
+    val nimbusJoseJwt    = "10.10"
     val nimbusOauth2Oidc = "11.38.1"
     val vault            = "5.1.0"
 
