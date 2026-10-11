@@ -178,7 +178,7 @@ object types {
     * would mean no chain could ever be built, so the bound is positive rather
     * than merely non-negative.
     */
-  type SearchDepth = Int :| (Positive DescribedAs "search depth must be positive")
+  type SearchDepth = Int :| Positive
 
   /** Section 3.2: "The Entity Statement's kid (Key ID) header parameter value
     * MUST be a non-zero length string."
