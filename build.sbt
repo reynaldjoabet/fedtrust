@@ -1,5 +1,3 @@
-import Dependencies._
-
 ThisBuild / scalaVersion := "3.10.0"
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 
@@ -44,7 +42,7 @@ ThisBuild / startYear     := Some(2026)
 ThisBuild / versionScheme := Some("early-semver")
 
 lazy val commonSettings = Seq(
-  libraryDependencies ++= testDeps
+  libraryDependencies ++= Dependencies.testing.all
 )
 
 // The root is an aggregate only: no sources of its own, so nothing outside
@@ -66,7 +64,13 @@ lazy val core = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-core",
-    libraryDependencies ++= Seq(catsCore, iron, ironCirce, jsoniterCore, jsoniterCirce) ++ circeAll
+    libraryDependencies ++=
+      Seq(
+        Dependencies.core.catsCore,
+        Dependencies.domain.iron.core,
+        Dependencies.domain.iron.circe,
+        Dependencies.json.jsoniter.circe
+      ) ++ Dependencies.json.jsoniter.core ++ Dependencies.json.circe.all
   )
 
 // Signing and verification. Pins the crypto backend, which is the reason this
@@ -77,7 +81,7 @@ lazy val jose = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-jose",
-    libraryDependencies += nimbusJoseJwt
+    libraryDependencies += Dependencies.security.nimbus.joseJwt
   )
 
 // Trust Chain building and validation, metadata policy, constraints, and the
@@ -89,7 +93,7 @@ lazy val resolver = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-resolver",
-    libraryDependencies ++= Seq(catsEffect, iron)
+    libraryDependencies ++= Seq(Dependencies.core.catsEffect, Dependencies.domain.iron.core)
   )
 
 // Request and response contracts for the federation endpoints (spec section
@@ -99,7 +103,10 @@ lazy val endpoints = project
   .in(file("modules/endpoints"))
   .dependsOn(core, resolver)
   .settings(commonSettings)
-  .settings(name := "fedtrust-endpoints", libraryDependencies += iron)
+  .settings(
+    name := "fedtrust-endpoints",
+    libraryDependencies += Dependencies.domain.iron.core
+  )
 
 // One module per HTTP backend; users pick the one matching their stack.
 lazy val http4sBackend = project
@@ -108,7 +115,11 @@ lazy val http4sBackend = project
   .settings(commonSettings)
   .settings(
     name := "fedtrust-http4s",
-    libraryDependencies ++= Seq(http4sClient, http4sCirce, emberClient % Test)
+    libraryDependencies ++= Seq(
+      Dependencies.http.http4s.client,
+      Dependencies.http.http4s.circe,
+      Dependencies.http.http4s.emberClient % Test
+    )
   )
 
 // In-memory federations for tests: a TA -> intermediate -> leaf tree with no
