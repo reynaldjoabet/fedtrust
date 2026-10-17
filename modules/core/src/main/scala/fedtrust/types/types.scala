@@ -1,7 +1,5 @@
 package fedtrust
 
-import java.net.URI
-
 import scala.annotation.targetName
 
 import io.circe.{Decoder, Encoder, Json, JsonObject, KeyDecoder, KeyEncoder}
@@ -64,16 +62,18 @@ object types {
       */
     def value: String = id
 
-    /** The entity's federation entity configuration location.
+    /** The entity's configuration endpoint (spec section 9): the identifier
+      * with `/.well-known/openid-federation` appended, after removing any
+      * trailing `/`. So `https://rp.example.com/123` publishes at
+      * `https://rp.example.com/123/.well-known/openid-federation`.
       *
-      * The well-known path segment is inserted after the host, ahead of any
-      * path the identifier already carries.
+      * Appended, not inserted after the host as RFC 8414 does for OAuth
+      * server metadata. The two conventions agree for an identifier with no
+      * path and diverge as soon as there is one, so getting this wrong only
+      * shows up against multi-tenant deployments.
       */
-    def wellKnownUri: String = {
-      val uri  = new URI(id)
-      val path = Option(uri.getRawPath).filter(_ != "/").getOrElse("")
-      s"${uri.getScheme}://${uri.getRawAuthority}/.well-known/openid-federation$path"
-    }
+    def wellKnownUri: String =
+      id.stripSuffix("/") + "/.well-known/openid-federation"
   }
 
   given Encoder[EntityId]  = Encoder.encodeString.contramap(identity)

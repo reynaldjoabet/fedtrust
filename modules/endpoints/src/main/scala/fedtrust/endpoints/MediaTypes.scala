@@ -20,6 +20,13 @@ enum MediaType(val value: String) derives CanEqual {
 
   case TrustMark extends MediaType("application/trust-mark+jwt")
 
+  /** A Trust Chain as a JSON array of compact Entity Statements, `ES[0]`
+    * first. Explicit registration (section 12.2) accepts this as an
+    * alternative to a bare Entity Configuration; verify one with
+    * [[fedtrust.resolver.TrustChainVerifier]].
+    */
+  case TrustChain extends MediaType("application/trust-chain+json")
+
   /** Subordinate listings, and every error response. */
   case Json extends MediaType("application/json")
 }

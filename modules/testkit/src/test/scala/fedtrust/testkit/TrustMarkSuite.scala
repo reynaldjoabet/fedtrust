@@ -283,7 +283,7 @@ class TrustMarkSuite extends FunSuite {
       StatementVerifier[Result](JwsVerifier[Result], Right(now))
     )
 
-    Resolver.withoutTrustMarks[Result](chains).resolve(leaf.id, trustAnchor.id) match {
+    Resolver.withoutTrustMarks[Result](chains).resolve(leaf.id, trustAnchor.asTrustAnchor) match {
       case Left(error)     => fail(s"expected resolution to succeed, got $error")
       case Right(resolved) => assertEquals(resolved.trustMarks, Nil)
     }

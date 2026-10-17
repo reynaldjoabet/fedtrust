@@ -58,7 +58,7 @@ class RefinementSuite extends FunSuite {
     assertEquals(anchor.value, "https://ta.example.org")
     assertEquals(
       tenant.wellKnownUri,
-      "https://op.example.com/.well-known/openid-federation/tenant/a"
+      "https://op.example.com/tenant/a/.well-known/openid-federation"
     )
     assertEquals(relyingParty, EntityType.OpenIdRelyingParty)
   }

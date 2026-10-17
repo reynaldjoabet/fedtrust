@@ -97,7 +97,11 @@ final class TrustMarkValidator[F[_]](
     if (issuer == anchor.sub) anchor.jwks.pure[F]
     else
       chains
-        .resolve(issuer, anchor.sub)
+        // `anchor` reached this validator as the verified top of a chain, so
+        // its jwks already passed the caller's pinned keys. Section 10.2 makes
+        // a verified anchor configuration's jwks authoritative, which is why
+        // they can stand in as the pin for the issuer's chain.
+        .resolve(issuer, TrustAnchor(anchor.sub, anchor.jwks))
         .adaptErr { case error =>
           invalid(s"no trust chain from the trust mark issuer ${issuer.value}: ${error.getMessage}")
         }

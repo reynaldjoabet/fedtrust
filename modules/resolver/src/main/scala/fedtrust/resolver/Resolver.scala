@@ -34,7 +34,7 @@ final case class ResolvedEntity(
   * doing their own policy handling want the first alone.
   */
 trait Resolver[F[_]] {
-  def resolve(subject: EntityId, trustAnchor: EntityId): F[ResolvedEntity]
+  def resolve(subject: EntityId, trustAnchor: TrustAnchor): F[ResolvedEntity]
 }
 
 object Resolver {
@@ -51,7 +51,7 @@ object Resolver {
       trustMarks: TrustMarkValidator[F]
   ): Resolver[F] =
     new Resolver[F] {
-      def resolve(subject: EntityId, trustAnchor: EntityId): F[ResolvedEntity] =
+      def resolve(subject: EntityId, trustAnchor: TrustAnchor): F[ResolvedEntity] =
         for {
           chain    <- chains.resolve(subject, trustAnchor)
           metadata <- resolvedMetadata(chain).liftTo[F]
@@ -72,7 +72,7 @@ object Resolver {
     */
   def withoutTrustMarks[F[_]: MonadThrow](chains: TrustChainResolver[F]): Resolver[F] =
     new Resolver[F] {
-      def resolve(subject: EntityId, trustAnchor: EntityId): F[ResolvedEntity] =
+      def resolve(subject: EntityId, trustAnchor: TrustAnchor): F[ResolvedEntity] =
         for {
           chain    <- chains.resolve(subject, trustAnchor)
           metadata <- resolvedMetadata(chain).liftTo[F]

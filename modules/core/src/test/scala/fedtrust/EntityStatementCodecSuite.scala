@@ -45,14 +45,34 @@ class EntityStatementCodecSuite extends FunSuite {
     assert(EntityId("https://op.example.com#f").isLeft)
   }
 
-  test("the well-known path goes ahead of the identifier's own path") {
+  test("the well-known path is appended to the identifier (section 9)") {
+    // The spec's own example, and the one Authlete's guide gives: an
+    // identifier with a path keeps it, and the segment goes on the end.
     assertEquals(
-      EntityId.unsafe("https://op.example.com/tenant/a").wellKnownUri,
-      "https://op.example.com/.well-known/openid-federation/tenant/a"
+      EntityId.unsafe("https://rp.example.com/123").wellKnownUri,
+      "https://rp.example.com/123/.well-known/openid-federation"
     )
     assertEquals(
-      EntityId.unsafe("https://op.example.com").wellKnownUri,
-      "https://op.example.com/.well-known/openid-federation"
+      EntityId.unsafe("https://entity.example").wellKnownUri,
+      "https://entity.example/.well-known/openid-federation"
+    )
+  }
+
+  test("a trailing slash is removed before appending (section 9)") {
+    assertEquals(
+      EntityId.unsafe("https://entity.example/").wellKnownUri,
+      "https://entity.example/.well-known/openid-federation"
+    )
+    assertEquals(
+      EntityId.unsafe("https://op.example.com/tenant/a/").wellKnownUri,
+      "https://op.example.com/tenant/a/.well-known/openid-federation"
+    )
+  }
+
+  test("an identifier with a port keeps it") {
+    assertEquals(
+      EntityId.unsafe("https://op.example.com:8443/tenant").wellKnownUri,
+      "https://op.example.com:8443/tenant/.well-known/openid-federation"
     )
   }
 }

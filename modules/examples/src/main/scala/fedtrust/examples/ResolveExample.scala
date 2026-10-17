@@ -113,9 +113,23 @@ object ResolveExample {
       )
     )
 
+    // The anchors this deployment trusts, with keys obtained out of band. A
+    // resolve request names anchors by identifier only; it is these configured
+    // pins, never the request or the network, that decide which keys count.
+    val trustedAnchors = List(trustAnchor.asTrustAnchor)
+
+    val anchor = expect(
+      request.trustAnchors
+        .flatMap(requested => trustedAnchors.find(_.id == requested))
+        .headOption
+        .toRight(
+          FederationError.InvalidTrustAnchor("none of the requested trust anchors is configured")
+        )
+    )
+
     Resolver
       .withoutTrustMarks[Result](chains)
-      .resolve(request.sub, request.trustAnchors.head) match {
+      .resolve(request.sub, anchor) match {
       case Left(error) =>
         println(s"resolution failed: $error")
 

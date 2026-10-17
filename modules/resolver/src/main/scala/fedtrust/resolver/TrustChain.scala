@@ -5,6 +5,7 @@ import java.time.Instant
 import fedtrust.entity.EntityStatement
 import fedtrust.error.FederationError
 import fedtrust.jwk.JwkSet
+import fedtrust.jwt.SignedJwt
 import fedtrust.types.{*, given}
 
 /** A validated trust chain, held in the order the spec defines: the subject's
@@ -14,11 +15,20 @@ import fedtrust.types.{*, given}
   * The three parts are separate fields rather than one list because they are
   * never interchangeable — the ends are self-issued and the middle is not, and
   * every operation on a chain starts by distinguishing them.
+  *
+  * `signedStatements` holds the compact JWSs the chain was built from, as
+  * `ES[0]` through `ES[i]`. Decoded claims are this library's word for what
+  * was signed; the JWSs are the evidence. They are what goes in a resolve
+  * response's `trust_chain` claim (section 8.3.2), the `trust_chain` JWS
+  * header (section 4.3), or an `application/trust-chain+json` registration, so
+  * that the recipient can verify the chain for itself. A chain assembled from
+  * decoded statements alone, as tests do, has none.
   */
 final case class TrustChain(
     subjectConfiguration: EntityStatement,
     subordinateStatements: List[EntityStatement],
-    trustAnchorConfiguration: EntityStatement
+    trustAnchorConfiguration: EntityStatement,
+    signedStatements: List[SignedJwt] = Nil
 ) {
 
   def subject: EntityId = subjectConfiguration.sub
@@ -79,9 +89,15 @@ object TrustChain {
   def validated(
       subjectConfiguration: EntityStatement,
       subordinateStatements: List[EntityStatement],
-      trustAnchorConfiguration: EntityStatement
+      trustAnchorConfiguration: EntityStatement,
+      signedStatements: List[SignedJwt] = Nil
   ): Either[FederationError, TrustChain] = {
-    val chain = TrustChain(subjectConfiguration, subordinateStatements, trustAnchorConfiguration)
+    val chain = TrustChain(
+      subjectConfiguration,
+      subordinateStatements,
+      trustAnchorConfiguration,
+      signedStatements
+    )
 
     def invalid(why: String) = Left(FederationError.InvalidTrustChain(why))
 

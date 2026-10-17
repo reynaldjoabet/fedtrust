@@ -14,12 +14,18 @@ import fedtrust.jose.Nimbus
 import fedtrust.jwk.{Jwk, JwkSet}
 import fedtrust.jwt.{JwtTyp, SignedJwt}
 import fedtrust.metadata.{FederationEntityMetadata, Metadata, MetadataPolicy}
+import fedtrust.resolver.TrustAnchor
 import fedtrust.types.{*, given}
 import io.circe.{Encoder, JsonObject}
 
 /** An entity with a signing key, as a test needs it. */
 final case class TestEntity(id: EntityId, privateKey: Jwk, publicKey: Jwk) {
   def jwks: JwkSet = JwkSet(List(publicKey))
+
+  /** This entity as a relying party would configure it: identifier plus
+    * pinned public keys, the pairing section 10 requires.
+    */
+  def asTrustAnchor: TrustAnchor = TrustAnchor(id, jwks)
 }
 
 object TestEntity {

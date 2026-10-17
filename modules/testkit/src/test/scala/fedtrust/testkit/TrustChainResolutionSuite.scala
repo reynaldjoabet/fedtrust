@@ -135,7 +135,7 @@ class TrustChainResolutionSuite extends FunSuite {
   }
 
   test("resolves a two-hop chain from the leaf to the trust anchor") {
-    resolverOver().resolve(leaf.id, trustAnchor.id) match {
+    resolverOver().resolve(leaf.id, trustAnchor.asTrustAnchor) match {
       case Left(error)  => fail(s"expected a chain, got $error")
       case Right(chain) =>
         assertEquals(chain.subject, leaf.id)
@@ -148,7 +148,7 @@ class TrustChainResolutionSuite extends FunSuite {
 
   test("resolved metadata reflects both superiors' policies") {
     val resolved =
-      Resolver.withoutTrustMarks[Result](resolverOver()).resolve(leaf.id, trustAnchor.id)
+      Resolver.withoutTrustMarks[Result](resolverOver()).resolve(leaf.id, trustAnchor.asTrustAnchor)
 
     resolved match {
       case Left(error)   => fail(s"expected resolved metadata, got $error")
@@ -175,7 +175,7 @@ class TrustChainResolutionSuite extends FunSuite {
   }
 
   test("no chain to an entity that is not a trust anchor of this federation") {
-    assert(resolverOver().resolve(leaf.id, stranger.id).isLeft)
+    assert(resolverOver().resolve(leaf.id, stranger.asTrustAnchor).isLeft)
   }
 
   test("a subordinate statement signed with the wrong key is rejected") {
@@ -196,7 +196,7 @@ class TrustChainResolutionSuite extends FunSuite {
 
     val result = resolverOver(subordinates =
       subordinates.updated((TestFederation.fetchEndpointOf(intermediate), leaf.id), forged)
-    ).resolve(leaf.id, trustAnchor.id)
+    ).resolve(leaf.id, trustAnchor.asTrustAnchor)
 
     assert(result.isLeft, "a statement not signed by the issuing superior must not be accepted")
   }
@@ -225,7 +225,7 @@ class TrustChainResolutionSuite extends FunSuite {
       configurations = configurations.updated(intermediate.id, rotatedConfiguration),
       subordinates = subordinates
         .updated((TestFederation.fetchEndpointOf(intermediate), leaf.id), signedWithRotatedKey)
-    ).resolve(leaf.id, trustAnchor.id)
+    ).resolve(leaf.id, trustAnchor.asTrustAnchor)
 
     assert(result.isLeft, "a self-asserted key rotation must not be enough to sign statements")
   }
@@ -233,7 +233,7 @@ class TrustChainResolutionSuite extends FunSuite {
   test("expired statements are rejected") {
     val later = now.plusSeconds(TestFederation.defaultLifetimeSeconds + 3600)
 
-    assert(resolverOver(clock = later).resolve(leaf.id, trustAnchor.id).isLeft)
+    assert(resolverOver(clock = later).resolve(leaf.id, trustAnchor.asTrustAnchor).isLeft)
   }
 
   test("an entity that names an authority which does not vouch for it gets no chain") {
@@ -249,13 +249,13 @@ class TrustChainResolutionSuite extends FunSuite {
 
     val result = resolverOver(
       configurations = configurations.updated(unvouched.id, configuration)
-    ).resolve(unvouched.id, trustAnchor.id)
+    ).resolve(unvouched.id, trustAnchor.asTrustAnchor)
 
     assert(result.isLeft, "authority_hints is a claim by the subject, not proof of membership")
   }
 
   test("the trust anchor resolves to itself as a zero-length chain") {
-    resolverOver().resolve(trustAnchor.id, trustAnchor.id) match {
+    resolverOver().resolve(trustAnchor.id, trustAnchor.asTrustAnchor) match {
       case Left(error)  => fail(s"expected the trivial chain, got $error")
       case Right(chain) => assertEquals(chain.pathLength, 0)
     }
