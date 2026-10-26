@@ -29,7 +29,7 @@ object Dependencies {
     val fs2             = "3.14.0"
     val fs2Kafka        = "4.1.3"
     val chimney         = "2.1.0"
-    val iron            = "3.4.0"
+    val iron            = "3.4.1"
     val hedgehog        = "0.13.1"
     val scalacheck      = "1.20.0"
     val munit           = "1.3.6"
@@ -41,7 +41,7 @@ object Dependencies {
     val magnum   = "2.0.0-M3"
     val skunk    = "2.0.0-RC3"
     val hikaricp = "7.1.0"
-    val flyway   = "13.10.3"
+    val flyway   = "13.11.1"
     val postgres = "42.7.14"
 
     // --- Security ---
